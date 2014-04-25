@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+# trap 'tput rmkx' EXIT
+# tput smkx
+hexdump -C -v

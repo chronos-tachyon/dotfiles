@@ -1,0 +1,54 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.2
+"""Prints information about a time_t."""
+
+from __future__ import print_function
+import datetime, time, sys
+
+FORMAT = '%Y/%m/%d %H:%M:%S (%I:%M:%S %p)'
+NOW_T = int(time.time())
+NOW = datetime.datetime.fromtimestamp(NOW_T)
+
+
+def Pluralize(n, singular, plural=None):
+  if plural is None: plural = singular + 's'
+  if n == 1:
+    return '{0} {1}'.format(n, singular)
+  else:
+    return '{0} {1}'.format(n, plural)
+
+
+def Diff(delta):
+  if delta.total_seconds() > 0:
+    suffix = ' ago'
+  elif delta.total_seconds() < 0:
+    suffix = ' from now'
+    delta = -delta
+  else:
+    return 'now'
+  result = []
+  q, r = divmod(delta.days, 7)
+  if q > 0: result.append(Pluralize(q, 'week'))
+  if r > 0: result.append(Pluralize(r, 'day'))
+  q, r = divmod(delta.seconds, 3600)
+  if q > 0: result.append(Pluralize(q, 'hour'))
+  q, r = divmod(r, 60)
+  if q > 0: result.append(Pluralize(q, 'minute'))
+  if r > 0: result.append(Pluralize(r, 'second'))
+  return ', '.join(result) + suffix
+
+
+def Show(time_t):
+  loc = datetime.datetime.fromtimestamp(time_t)
+  utc = datetime.datetime.utcfromtimestamp(time_t)
+  print('time_t: {0}'.format(time_t))
+  print(' Local: {0}'.format(loc.strftime(FORMAT)))
+  print('   UTC: {0}'.format(utc.strftime(FORMAT)))
+  print(Diff(NOW - loc))
+
+
+if len(sys.argv) < 2:
+  Show(NOW_T)
+else:
+  for arg in sys.argv[1:]:
+    Show(int(arg))

@@ -1,0 +1,109 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Tested with Python 2.7 and 3.2
+"""Show the names, categories, and codepoints of each input Unicode character.
+Usage: unidecode ('-' | <text>...)
+  A lone hyphen reads from STDIN until EOF.
+  Each <text> is literal text to decode.
+"""
+
+from __future__ import print_function, unicode_literals
+import sys, unicodedata
+
+# http://en.wikipedia.org/wiki/C0_and_C1_control_codes
+# Python 2.7 doesn't include these in unicodedata
+SPECIAL = {0x00: ('Cc', '^@ ', 'ASCII NULL CHARACTER (NUL)'),
+           0x01: ('Cc', '^A ', 'ASCII START OF HEADER (SOH)'),
+           0x02: ('Cc', '^B ', 'ASCII START OF TEXT (STX)'),
+           0x03: ('Cc', '^C ', 'ASCII END OF TEXT (ETX)'),
+           0x04: ('Cc', '^D ', 'ASCII END OF TRANSMISSION (EOT)'),
+           0x05: ('Cc', '^E ', 'ASCII ENQUIRY (ENQ)'),
+           0x06: ('Cc', '^F ', 'ASCII ACKNOWLEDGEMENT (ACK)'),
+           0x07: ('Cc', '^G ', 'ASCII BELL (BEL) - \\a'),
+           0x08: ('Cc', '^H ', 'ASCII BACKSPACE (BS) - \\b'),
+           0x09: ('Cc', '^I ', 'ASCII HORIZONTAL TABULATION (HT) - \\t'),
+           0x0A: ('Cc', '^J ', 'ASCII LINE FEED (LF) - \\n'),
+           0x0B: ('Cc', '^K ', 'ASCII VERTICAL TABULATION (VT) - \\v'),
+           0x0C: ('Cc', '^L ', 'ASCII FORM FEED (FF) - \\f'),
+           0x0D: ('Cc', '^M ', 'ASCII CARRIAGE RETURN (CR) - \\r'),
+           0x0E: ('Cc', '^N ', 'ASCII SHIFT OUT (SO)'),
+           0x0F: ('Cc', '^O ', 'ASCII SHIFT IN (SI)'),
+           0x10: ('Cc', '^P ', 'ASCII DATA LINK ESCAPE (DLE)'),
+           0x11: ('Cc', '^Q ', 'ASCII DEVICE CONTROL 1 (DC1, XON)'),
+           0x12: ('Cc', '^R ', 'ASCII DEVICE CONTROL 2 (DC2)'),
+           0x13: ('Cc', '^S ', 'ASCII DEVICE CONTROL 3 (DC3, XOFF)'),
+           0x14: ('Cc', '^T ', 'ASCII DEVICE CONTROL 4 (DC4)'),
+           0x15: ('Cc', '^U ', 'ASCII NEGATIVE ACKNOWLEDGEMENT (NAK)'),
+           0x16: ('Cc', '^V ', 'ASCII SYNCHRONOUS IDLE (SYN)'),
+           0x17: ('Cc', '^W ', 'ASCII END OF TRANSMISSION BLOCK (ETB)'),
+           0x18: ('Cc', '^X ', 'ASCII CANCEL (CAN)'),
+           0x19: ('Cc', '^Y ', 'ASCII END OF MEDIUM (EM)'),
+           0x1A: ('Cc', '^Z ', 'ASCII SUBSTITUTE (SUB)'),
+           0x1B: ('Cc', '^[ ', 'ASCII ESCAPE (ESC) - \\e'),
+           0x1C: ('Cc', '^\\ ', 'ASCII FILE SEPARATOR (FS)'),
+           0x1D: ('Cc', '^] ', 'ASCII GROUP SEPARATOR (GS)'),
+           0x1E: ('Cc', '^^ ', 'ASCII RECORD SEPARATOR (RS)'),
+           0x1F: ('Cc', '^_ ', 'ASCII UNIT SEPARATOR (US)'),
+           0x7F: ('Cc', '   ', 'ASCII DELETE (DEL)'),
+           0x80: ('Cc', '@@ ', 'C1 PADDING CHARACTER (PAD)'),
+           0x81: ('Cc', '@A ', 'C1 HIGH OCTET PRESET (HOP)'),
+           0x82: ('Cc', '@B ', 'C1 BREAK PERMITTED HERE (BPH)'),
+           0x83: ('Cc', '@C ', 'C1 NO BREAK HERE (NBH)'),
+           0x84: ('Cc', '@D ', 'C1 INDEX (IND)'),
+           0x85: ('Cc', '@E ', 'C1 NEXT LINE (NEL)'),
+           0x86: ('Cc', '@F ', 'C1 START OF SELECTED AREA (SSA)'),
+           0x87: ('Cc', '@G ', 'C1 END OF SELECTED AREA (ESA)'),
+           0x88: ('Cc', '@H ', 'C1 HORIZONTAL TABULATION SET (HTS)'),
+           0x89: ('Cc', '@I ', 'C1 HORIZONTAL TABULATION WITH JUSTIFICATION (HTJ)'),
+           0x8A: ('Cc', '@J ', 'C1 VERTICAL TABULATION SET (VTS)'),
+           0x8B: ('Cc', '@K ', 'C1 PARTIAL LINE DOWN (PLD)'),
+           0x8C: ('Cc', '@L ', 'C1 PARTIAL LINE UP (PLU)'),
+           0x8D: ('Cc', '@M ', 'C1 REVERSE LINE FEED'),
+           0x8E: ('Cc', '@N ', 'C1 SINGLE SHIFT 2 (SS2)'),
+           0x8F: ('Cc', '@O ', 'C1 SINGLE SHIFT 3 (SS3)'),
+           0x90: ('Cc', '@P ', 'C1 DEVICE CONTROL STRING (DCS)'),
+           0x91: ('Cc', '@Q ', 'C1 PRIVATE USE 1 (PU1)'),
+           0x92: ('Cc', '@R ', 'C1 PRIVATE USE 2 (PU2)'),
+           0x93: ('Cc', '@S ', 'C1 SET TRANSMIT STATE (STS)'),
+           0x94: ('Cc', '@T ', 'C1 CANCEL CHARACTER (CCH)'),
+           0x95: ('Cc', '@U ', 'C1 MESSAGE WAITING (MW)'),
+           0x96: ('Cc', '@V ', 'C1 START OF PROTECTED AREA (SPA)'),
+           0x97: ('Cc', '@W ', 'C1 END OF PROTECTED AREA (EPA)'),
+           0x98: ('Cc', '@X ', 'C1 START OF STRING (SOS)'),
+           0x99: ('Cc', '@Y ', 'C1 SINGLE GRAPHICAL CHARACTER INTRODUCER (SGCI)'),
+           0x9A: ('Cc', '@Z ', 'C1 SINGLE CHARACTER INTRODUCER (SCI)'),
+           0x9B: ('Cc', '@[ ', 'C1 CONTROL SEQUENCE INTRODUCER (CSI)'),
+           0x9C: ('Cc', '@\\ ', 'C1 STRING TERMINATOR (ST)'),
+           0x9D: ('Cc', '@] ', 'C1 OPERATING SYSTEM COMMAND (OSC)'),
+           0x9E: ('Cc', '@^ ', 'C1 PRIVACY MESSAGE (PM)'),
+           0x9F: ('Cc', '@_ ', 'C1 APPLICATION PROGRAM COMMAND (APC)')}
+
+
+def GetCharDescription(ch):
+  codepoint = ord(ch)
+  ref = ('U+{:04X}' if codepoint < 0x10000 else 'U+{:08X}').format(codepoint)
+  if codepoint in SPECIAL:
+    category, formatted, name = SPECIAL[codepoint]
+  else:
+    try:
+      name = unicodedata.name(ch)
+      category = unicodedata.category(ch)
+    except ValueError:
+      name = '???'
+      category = '---'
+    base = '◌' if category.startswith('M') else ''
+    formatted = '<{}{}>'.format(base, ch)
+  return '{:>10s} {:3s} {} {}'.format(ref, category, formatted, name)
+
+
+if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
+  print(__doc__, file=sys.stderr)
+  sys.exit(1)
+
+for arg in sys.argv[1:]:
+  text = sys.stdin.read() if arg == '-' else arg
+  if str is bytes: text = text.decode(sys.stdin.encoding or 'UTF-8')
+  for ch in text:
+    desc = GetCharDescription(ch)
+    if str is bytes: desc = desc.encode(sys.stdout.encoding or 'UTF-8')
+    print(desc)

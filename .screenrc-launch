@@ -1,0 +1,3 @@
+source .screenrc
+screen -l -t login 0 bash --login
+# vim:ft=screen:

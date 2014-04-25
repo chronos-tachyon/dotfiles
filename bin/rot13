@@ -1,0 +1,32 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.2
+"""Scrambles the given text using ROT13.
+Usage: rot13 ('-' | <text>...)
+  A lone hyphen reads from STDIN until EOF.
+  Each <text> is literal text to scramble.
+"""
+
+from __future__ import print_function
+import string, sys
+
+A = 'ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz'
+B = 'NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm'
+
+if str is bytes:
+  TABLE = string.maketrans(A, B)
+else:
+  TABLE = {ord(k): ord(v) for k, v in zip(A, B)}
+
+if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
+  print(__doc__, file=sys.stderr)
+  sys.exit(1)
+
+for arg in sys.argv[1:]:
+  if arg == '-':
+    text = sys.stdin.read()
+    end = ''
+  else:
+    text = arg
+    end = '\n'
+  text = text.translate(TABLE)
+  print(text, end=end)

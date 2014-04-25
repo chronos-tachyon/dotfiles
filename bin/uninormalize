@@ -1,0 +1,40 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.2
+"""Converts the input Unicode string(s) to the requested normalization form.
+Usage: uninormalize <form> ['-' | <text>...]
+  <form> is one of: NFC NFKC NFD NFKD
+  A lone hyphen reads from STDIN until EOF.  This is also the default.
+  Each <text> is literal text to normalize.
+"""
+
+from __future__ import print_function
+import sys, unicodedata
+
+
+def Help(msg=None):
+  print(__doc__, file=sys.stderr)
+  if msg: print('ERROR: {}'.format(msg), file=sys.stderr)
+  sys.exit(1)
+
+
+if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
+  Help()
+
+form = sys.argv[1].upper()
+if form not in ('NFC', 'NFKC', 'NFD', 'NFKD'):
+  Help(msg='Unknown form: {!r}'.format(sys.argv[1]))
+
+inputs = sys.argv[2:]
+if not inputs: inputs.append('-')
+
+for arg in inputs:
+  if arg == '-':
+    text = sys.stdin.read()
+    end = ''
+  else:
+    text = arg
+    end = '\n'
+  if str is bytes: text = text.decode(sys.stdin.encoding or 'UTF-8')
+  text = unicodedata.normalize(form, text)
+  if str is bytes: text = text.encode(sys.stdout.encoding or 'UTF-8')
+  print(text, end=end)

@@ -1,0 +1,10 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.2
+
+from __future__ import print_function
+
+for i in range(0x20, 0x80, 0x10):
+  line = '%02X: ' % i
+  for j in range(i, i + 0x10):
+    line += chr(j)
+  print(line)

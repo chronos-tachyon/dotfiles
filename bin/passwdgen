@@ -1,0 +1,5 @@
+#!/bin/bash
+# Generates a password of 16 random characters from the websafe BASE64 alphabet.
+set -e -o pipefail
+trap 'echo "ERROR: $0 line $LINENO: exit status $?"' ERR
+dd if=/dev/random bs=1 count=12 2>/dev/null | base64 | tr '+/' '-_'

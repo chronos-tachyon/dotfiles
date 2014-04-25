@@ -1,0 +1,35 @@
+_bashrc_safe() {
+  local value="${1?}"
+  value="${value//[^0-9A-Za-z.-]/-}"
+  echo "${value}"
+}
+
+_bashrc_histfile() {
+  local u="$(_bashrc_safe "$LOGNAME")"
+  local h="$(_bashrc_safe "${HOSTNAME%%.*}")"
+  local s w t
+  if [ -n "$STY" -a -n "$WINDOW" ]; then
+    if [[ "$STY" =~ ^[0-9]+\. ]]; then
+      s="$(_bashrc_safe "${STY#*.}")"
+    else
+      s="$(_bashrc_safe "$STY")"
+    fi
+    w="$(_bashrc_safe "$WINDOW")"
+    t="S-${s}-${w}"
+  else
+    t="$(tty)"
+    t="${t#/dev/}"
+    t="T-$(_bashrc_safe "$t")"
+  fi
+  echo "${u}_${h}_${t}"
+}
+
+shopt -s histappend histreedit histverify
+export HISTCONTROL=ignoreboth:erasedups
+export HISTTIMEFORMAT='[%Y/%m/%d %H:%M:%S] '
+export HISTSIZE=5000
+export HISTFILE="${HOME}/.bash/history.d/$(_bashrc_histfile)"
+set +H
+
+unset _bashrc_histfile
+unset _bashrc_safe

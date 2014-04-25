@@ -1,0 +1,6 @@
+[ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
+[ -z "$USER" ] && USER="$(id -un)"
+[ -z "$UID" ] && USER="$(id -u)"
+[ -z "$LOGNAME" ] && LOGNAME="$USER"
+[ -z "$HOME" ] && HOME=~
+[ -z "$TERM" ] && TERM="dumb"

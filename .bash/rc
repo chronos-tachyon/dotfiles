@@ -1,0 +1,10 @@
+source ~/.bash/functions || return
+set -a
+_bashrc_source_dir ~/.bash/env.d
+set +a
+_bashrc_source_dir ~/.bash/rc.d
+if [ -n "$PS1" ]; then
+  _bashrc_source_dir ~/.bash/alias.d
+  _bashrc_source_dir ~/.bash/completion.d
+fi
+_bashrc_cleanup

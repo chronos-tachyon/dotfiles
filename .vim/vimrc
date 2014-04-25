@@ -1,0 +1,129 @@
+" Vim configuration
+
+" --- Plugin configuration {{{
+" Accept the truth: all sh is bash
+let g:is_bash = 1
+
+" Highlight Perl POD documentation
+let perl_include_pod = 1
+
+" Set up the securemodelines.vim plugin
+let g:secure_modelines_verbose = 1
+let g:secure_modelines_allowed_items = [
+    \ "textwidth",    "tw",
+    \ "softtabstop",  "sts",
+    \ "tabstop",      "ts",
+    \ "shiftwidth",   "sw",
+    \ "expandtab",    "et",   "noexpandtab", "noet",
+    \ "filetype",     "ft",
+    \ "fileencoding", "fenc",
+    \ "foldmethod",   "fdm",
+    \ "readonly",     "ro",   "noreadonly", "noro",
+    \ "rightleft",    "rl",   "norightleft", "norl",
+    \ "cindent",      "cin",  "nocindent", "nocin",
+    \ "smartindent",  "si",   "nosmartindent", "nosi",
+    \ "autoindent",   "ai",   "noautoindent", "noai",
+    \ "spell",
+    \ "spelllang"
+    \ ]
+" }}}
+
+" --- Defaults {{{
+" Debian
+runtime! debian.vim
+" }}}
+
+" --- Vim global options {{{
+set directory=~/.vim/swap//
+set viminfo='20,\"50,s64,:100,n~/.vim/viminfo
+set history=50
+set nobackup
+" }}}
+
+" --- Terminal options {{{
+set termencoding=utf-8
+set pastetoggle=<F12>
+" set mouse=a
+" set title
+" }}}
+
+" --- File interpretation/format options {{{
+set encoding=utf-8
+set tabstop=8
+set softtabstop=2
+set shiftwidth=2
+set expandtab
+set textwidth=0
+set noautoindent
+set nomodeline
+" }}}
+
+" --- UI options {{{
+set foldmethod=marker
+set nofoldenable
+set nowrap
+set ruler
+set showcmd
+set showmode
+set showmatch
+set incsearch
+set hlsearch
+set smartcase
+set colorcolumn=+1
+set laststatus=2
+set backspace=indent,eol,start
+set whichwrap=b,s,<,>,[,]
+set wildmode=longest,list,full
+set completeopt=menuone,longest,preview
+set list
+set listchars=extends:»,precedes:«,nbsp:□,trail:·,tab:·–
+" }}}
+
+" --- Keyboard Mappings {{{
+" Keys with Ctrl/Shift {{{
+" C-Left/C-Right and S-Left/S-Right already do reasonable things
+map <Esc>[1;2A <S-Up>
+map <Esc>[1;2B <S-Down>
+map <Esc>[1;2C <S-Right>
+map <Esc>[1;2D <S-Left>
+map <Esc>[1;5A <C-Up>
+map <Esc>[1;5B <C-Down>
+map <Esc>[1;5C <C-Right>
+map <Esc>[1;5D <C-Left>
+map <Esc>[1;6A <C-S-Up>
+map <Esc>[1;6B <C-S-Down>
+map <Esc>[1;6C <C-S-Right>
+map <Esc>[1;6D <C-S-Left>
+" }}}
+
+" Make Ctrl-C exit without saving {{{
+noremap <C-C> :confirm :q<CR>
+noremap! <C-C> <C-O>:confirm :q<CR>
+" }}}
+
+" Make F5 in Normal mode save and reload the current file {{{
+nnoremap <F5> :w<CR>:e<CR>
+" }}}
+
+" Make p in Visual mode replace the selected text with the "" register. {{{
+vnoremap p <Esc>:let current_reg = @"<CR>gvdi<C-R>=current_reg<CR><Esc>
+" }}}
+" }}}
+
+" --- Syntax Highlighting {{{
+syntax enable
+set background=dark
+highlight SpecialKey cterm=NONE ctermbg=black ctermfg=darkblue
+highlight StatusLine ctermfg=cyan
+
+filetype plugin indent on
+augroup vimrc
+  au!
+  au BufWinEnter * exe "let &l:sw = min(filter([&l:ts,&l:sts], 'v:val > 0'))"
+  au BufReadPost *
+  \ if line("'\"") > 0 && line("'\"") <= line("$") |
+  \   exe "normal g`\"" |
+  \ endif
+  au FileType text setlocal textwidth=80
+augroup END
+" }}}

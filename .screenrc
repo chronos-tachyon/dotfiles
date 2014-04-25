@@ -1,0 +1,57 @@
+activity 'Activity in window %n^G'
+altscreen on
+bell_msg 'Bell in window %n^G'
+bind '#' screen -t '# |bash' sudo -i
+bind \\
+bind ^A meta
+bind k
+bind - command -c hyphen
+bind -c hyphen 0 select 10
+bind -c hyphen 1 select 11
+bind -c hyphen 2 select 12
+bind -c hyphen 3 select 13
+bind -c hyphen 4 select 14
+bind -c hyphen 5 select 15
+bind -c hyphen 6 select 16
+bind -c hyphen 7 select 17
+bind -c hyphen 8 select 18
+bind -c hyphen 9 select 19
+bindkey ^[[1;3A focus up
+bindkey ^[[1;3B focus down
+bindkey ^[[1;3C next
+bindkey ^[[1;3D prev
+bindkey ^[^[OA focus up
+bindkey ^[^[OB focus down
+bindkey ^[^[OC next
+bindkey ^[^[OD prev
+bindkey ^_ digraph
+bindkey ^[1 select 1
+bindkey ^[2 select 2
+bindkey ^[3 select 3
+bindkey ^[4 select 4
+bindkey ^[5 select 5
+bindkey ^[6 select 6
+bindkey ^[7 select 7
+bindkey ^[8 select 8
+bindkey ^[9 select 9
+bindkey ^[0 select 10
+bindkey ^[- select 11
+bindkey ^[= select 12
+caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-6=%c`'
+defc1 off
+deflogin off
+defscrollback 10000
+defutf8 on
+hardstatus ignore '[%n%f %t] %h'
+hardstatus on
+maptimeout 100
+shelltitle '$ |bash'
+startup_message off
+term screen-256color
+termcapinfo vt100 dl=5\E[M
+termcapinfo xterm*|rxvt* ti@:te@
+vbell off
+vbell_msg 'Ding!'
+windowlist title 'Num Name%015=Title%=Flags'
+windowlist string '%{r}%3n%{-} %{y}%t%{-}%015=%{g}%h%{-}%-05=%f%='
+zmodem auto

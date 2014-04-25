@@ -1,0 +1,45 @@
+if [ -e ~/.bash/trace ]; then
+  _bashrc_trace() { echo "$*" >&2 ; }
+else
+  _bashrc_trace() { : ; }
+fi
+
+_bashrc_source_file() {
+  local file="${1?}"
+  case "$file" in
+    (.*) return ;;
+    (*\#) return ;;
+    (*\~) return ;;
+    (*.dpkg*) return ;;
+    (*.rpm*) return ;;
+    (*.bak|*.BAK) return ;;
+    (*.old|*.OLD) return ;;
+    (*.swp) return ;;
+    (*.tmp) return ;;
+  esac
+  if [ -f "$file" -a -r "$file" ]; then
+    _bashrc_trace "SOURCE: $file"
+    source "$file"
+  fi
+}
+
+_bashrc_source_dir() {
+  local dir="${1?}"
+  local file
+  case "${dir##*/}" in
+    (.*) return 1 ;;
+  esac
+  if [ -d "$dir" -a -r "$dir" -a -x "$dir" ]; then
+    _bashrc_trace "DIR: $dir"
+    for file in "$dir"/[0-9][0-9]-*; do
+      _bashrc_source_file "$file"
+    done
+  fi
+}
+
+_bashrc_cleanup() {
+  unset _bashrc_trace
+  unset _bashrc_source_file
+  unset _bashrc_source_dir
+  unset _bashrc_cleanup
+}

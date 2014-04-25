@@ -1,0 +1,2 @@
+#!/bin/sh -e
+exec whois -h whois.ripe.net "$@"

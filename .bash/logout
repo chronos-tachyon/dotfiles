@@ -1,0 +1,3 @@
+source ~/.bash/functions || return
+_bashrc_source_dir ~/.bash/logout.d
+_bashrc_cleanup

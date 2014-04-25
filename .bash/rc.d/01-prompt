@@ -1,0 +1,24 @@
+_bashrc_pwd() {
+  case "$PWD" in
+    ("$HOME"|"$HOME"/*)
+      echo "~${PWD#$HOME}"
+      ;;
+    (*)
+      echo "$PWD"
+      ;;
+  esac
+}
+
+if [ -n "$PS1" ]; then
+  if [ "$(tput colors 2>/dev/null || echo 0)" -lt 8 ]; then
+    PS1='\u@\h:$(_bashrc_pwd)\$ '
+  elif [ "$UID" -eq 0 ]; then
+    PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]$(_bashrc_pwd)\[\e[0;31m\]\$\[\e[0m\] '
+  else
+    PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]$(_bashrc_pwd)\[\e[0m\]\$ '
+  fi
+  if [ -z "$debian_chroot" -a -r /etc/debian_chroot ]; then
+    debian_chroot="$(cat /etc/debian_chroot)"
+  fi
+  PS1='${debian_chroot:+($debian_chroot)}'"$PS1"
+fi

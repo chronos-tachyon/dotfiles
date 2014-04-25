@@ -1,0 +1,188 @@
+#!/usr/bin/python2
+
+import cStringIO as StringIO
+import re
+import sys
+import subprocess
+
+SECURITY_NONE, SECURITY_WEP, SECURITY_WPA, SECURITY_WPA2 = (
+    object() for _ in xrange(4))
+SECURITY_MAP = {None: None,
+                SECURITY_NONE: 'nopass',
+                SECURITY_WEP: 'WEP',
+                SECURITY_WPA: 'WPA',
+                SECURITY_WPA2: 'WPA'}
+BOOL_MAP = {None: None, False: 'false', True: 'true'}
+
+
+def StringFormat(pattern='[^;]*', default=None):
+  def Map(value):
+    if value is None or value == default:
+      return None
+    strvalue = str(value)
+    if pattern.match(strvalue):
+      return strvalue
+    else:
+      raise ValueError('Invalid value {0!r}'.format(value))
+  pattern = re.compile(pattern)
+  return Map
+
+
+def EnumFormat(item2str, default=None):
+  def Map(value):
+    if default is not None and value == default:
+      return None
+    elif value in item2str:
+      return item2str[value]
+    else:
+      raise ValueError('Invalid value {0!r}'.format(value))
+  return Map
+
+
+def BoolFormat(default=None):
+  return EnumFormat(BOOL_MAP, default=default)
+
+
+class BaseQRCodeFormat(object):
+  TYPEID = None
+  FIELDS = None
+
+  @classmethod
+  def EncodeAsText(cls, **kwargs):
+    result = cls.TYPEID + ':'
+    for qrkey, pykey, valuemapper in cls.FIELDS:
+      pyvalue = kwargs.pop(pykey, None)
+      qrvalue = valuemapper(pyvalue)
+      if qrvalue is None: continue
+      result += qrkey + ':' + qrvalue + ';'
+    if kwargs:
+      key, _ = kwargs.popitem()
+      raise TypeError(
+          'EncodeAsText() got an unexpected keyword argument {0!r}'.format(key))
+    result += ';'
+    return result
+
+  @classmethod
+  def EncodeAsImageFile(cls, output_file, extra_flags=(), **kwargs):
+    cmd = ['qrencode', '--output=' + output_file, '--8bit']
+    cmd.extend(extra_flags)
+    cmd.append(cls.EncodeAsText(**kwargs))
+    if output_file == '-':
+      p = subprocess.Popen(cmd, bufsize=0, stdout=subprocess.PIPE)
+      output, _ = p.communicate()
+      rc = p.wait()
+      if rc: raise subprocess.CalledProcessError(rc, cmd[0])
+      return output
+    else:
+      subprocess.check_call(cmd)
+      return ''
+
+
+class WifiQRCodeFormat(BaseQRCodeFormat):
+  TYPEID = 'WIFI'
+  FIELDS = (('T', 'security', EnumFormat(SECURITY_MAP, default=SECURITY_NONE)),
+            ('S', 'ssid', StringFormat()),
+            ('P', 'passphrase', StringFormat(default='')),
+            ('H', 'hidden', BoolFormat(default=False)))
+
+
+class NullFile(object):
+  closed = False
+  encoding = None
+  errors = None
+  mode = 'wb'
+  name = '<NullFile>'
+  newlines = None
+  softspace = 0
+
+  def close(self): pass
+  def flush(self): pass
+  def isatty(self): return False
+  def write(self, data): pass
+  def writelines(self, seq): pass
+
+
+def main(argv):
+  out = sys.stdout if sys.stdout.isatty() else NullFile()
+  params = {}
+
+  while True:
+    out.write('SSID: ')
+    out.flush()
+    line = sys.stdin.readline().strip()
+    if line:
+      params['ssid'] = line
+      break
+
+  out.write('none: No security.\n'
+            'wep:  WEP security.\n'
+            'wpa:  WPA security.\n'
+            'wpa2: WPA2 security.\n')
+  while True:
+    out.write('Security [NONE/wep/wpa/wpa2]: ')
+    out.flush()
+    line = sys.stdin.readline().strip().lower()
+    m = {'': SECURITY_NONE,
+         'none': SECURITY_NONE, 'wep': SECURITY_WEP,
+         'wpa': SECURITY_WPA, 'wpa2': SECURITY_WPA2}
+    if line in m:
+      params['security'] = m[line]
+      break
+
+  if params['security'] is not SECURITY_NONE:
+    while True:
+      out.write('Passphrase: ')
+      out.flush()
+      line = sys.stdin.readline().strip()
+      if line:
+        params['passphrase'] = line
+        break
+
+  while True:
+    out.write('Hidden [yes/NO]: ')
+    out.flush()
+    line = sys.stdin.readline().strip().lower()
+    m = {'': False, 'y': True, 'yes': True, 'n': False, 'no': False}
+    if line in m:
+      params['hidden'] = m[line]
+      break
+
+  if len(argv) > 1:
+    as_image = True
+    output_file = argv[1]
+    extra_flags = argv[2:]
+  else:
+    while True:
+      out.write('Output to image [yes/NO]: ')
+      out.flush()
+      line = sys.stdin.readline().strip().lower()
+      m = {'': False, 'y': True, 'yes': True, 'n': False, 'no': False}
+      if line in m:
+        as_image = m[line]
+        break
+
+    if as_image:
+      while True:
+        out.write('Output .PNG file: ')
+        out.flush()
+        line = sys.stdin.readline().strip().lower()
+        if line:
+          output_file = line
+          break
+      extra_flags = []
+      out.write('Additional space-separated flags for qrencode(1): ')
+      out.flush()
+      line = sys.stdin.readline().strip()
+      extra_flags = [arg for arg in line.split(' ') if arg]
+
+  if as_image:
+    output = WifiQRCodeFormat.EncodeAsImageFile(output_file,
+                                                extra_flags=extra_flags,
+                                                **params)
+    if output: sys.stdout.write(output)
+  else:
+    print WifiQRCodeFormat.EncodeAsText(**params)
+
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv) or 0)

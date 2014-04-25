@@ -1,0 +1,10 @@
+_bashrc_prompt() {
+  case "$TERM" in
+    (linux) ;;
+    (*) echo -ne "\e]0;${USER}@${HOSTNAME%%.*}: $(_bashrc_pwd)\a" ;;
+  esac
+  case "$TERM" in
+    (screen*) echo -ne "\ek\e\\" ;;
+  esac
+}
+PROMPT_COMMAND=_bashrc_prompt

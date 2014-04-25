@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.2
+"""Identifies lines that are too long.
+Usage: toolong <width> [<path>...]
+  <width> is the maximum column width (an integer)
+  <path> is the path to a file to scan
+  If no <path> is specified, scans STDIN until EOF
+
+RCS-style keywords are unexpanded.
+Lines starting with "import" or containing "NOLINT" are ignored.
+"""
+
+from __future__ import print_function
+import codecs, errno, re, sys
+
+RCS_RE = re.compile(r'\$(Author|Date|Header|Id|Name|Locker|Log|RCSfile|Revision|Source|State):[^$]*\$')
+NOLINT_RE = re.compile(r'^(?:import .*|.*\bNOLINT\b.*)$')
+
+
+def Help(msg=None):
+  print(__doc__, file=sys.stderr)
+  if msg: print('ERROR: {}'.format(msg), file=sys.stderr)
+  sys.exit(1)
+
+
+def PrintProblem(path, lineno, line):
+  if path == '/dev/stdin': path = '-'
+  print('{}:{}: {}'.format(path, lineno, line[limit:]))
+
+
+def LintOne(path, limit):
+  with codecs.open(path, 'r', 'utf-8') as f:
+    for lineno, raw_line in enumerate(f, 1):
+      line = RCS_RE.sub(r'$\1$', raw_line.rstrip().expandtabs(8))
+      if NOLINT_RE.match(line): continue
+      if len(line) > limit: PrintProblem(path, lineno, line)
+
+
+if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
+  Help()
+
+limit = sys.argv[1]
+paths = sys.argv[2:]
+if not paths: paths.append('/dev/stdin')
+
+try:
+  limit = int(limit)
+  assert limit >= 0, 'expected non-negative limit, got {}'.format(limit)
+except ValueError as e:
+  Help(msg=e)
+
+for path in paths:
+  try:
+    LintOne(path, limit)
+  except (OSError, IOError) as e:
+    if e.errno != errno.ENOENT: raise

@@ -1,0 +1,33 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.2
+
+from __future__ import print_function
+
+COLORS = ('Black',      'Dark Red',     'Dark Green', 'Brown/Dk Yellow',
+          'Dark Blue',  'Dark Magenta', 'Dark Cyan',  'Light Gray',
+          'Dark Gray',  'Red',          'Green',      'Yellow',
+          'Blue',       'Magenta/Pink', 'Cyan',       'White')
+
+print('          40 41 42 43 44 45 46 47')
+for fg, name in enumerate(COLORS):
+  bits = ''.join(('R' if fg & 1 else '-',
+                  'G' if fg & 2 else '-',
+                  'B' if fg & 4 else '-',
+                  'I' if fg & 8 else '-'))
+  fgcode = '{}{:02d}'.format('1;' if fg & 8 else '', 30 + (fg & 7))
+  line = '{fgcode:>4s} {bits} ^[[{fgcode};'.format(fgcode=fgcode, bits=bits)
+  for bg in range(40, 48):
+    line += '{:02d}mXXX^[['.format(bg)
+  line += '0m  ' + name
+  print(line.replace('^[', '\x1B'))
+
+
+print("""
+0m Reset        XXXXX
+1m Bold         X^[[1mXXX^[[22mX   22m Normal     ^[[0m
+2m Dim          X^[[2mXXX^[[22mX   22m Normal     ^[[0m
+4m Underline    X^[[4mXXX^[[24mX   24m No-under   ^[[0m
+5m Blink        X^[[5mXXX^[[25mX   25m No-blink   ^[[0m
+7m Reverse      X^[[7mXXX^[[27mX   27m No-reverse ^[[0m
+8m Hidden       X^[[8mXXX^[[28mX   28m No-hidden  ^[[0m
+""".replace('^[', '\x1B'))

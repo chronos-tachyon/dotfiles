@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+default_key="$(awk '$1 == "default-key" {print $2}' ~/.gnupg/gpg.conf)"
+exec /usr/bin/gpg --encrypt --recipient "$default_key" "$@"
