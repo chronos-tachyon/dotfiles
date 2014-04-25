@@ -37,7 +37,7 @@ bindkey ^[9 select 9
 bindkey ^[0 select 10
 bindkey ^[- select 11
 bindkey ^[= select 12
-caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-6=%c`'
+caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-6=%c'
 defc1 off
 deflogin off
 defscrollback 10000
