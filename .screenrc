@@ -16,6 +16,8 @@ bind -c hyphen 6 select 16
 bind -c hyphen 7 select 17
 bind -c hyphen 8 select 18
 bind -c hyphen 9 select 19
+bindkey ^_ digraph
+# Bind Alt-Arrows to relative switching {{{
 bindkey ^[[1;3A focus up
 bindkey ^[[1;3B focus down
 bindkey ^[[1;3C next
@@ -24,7 +26,14 @@ bindkey ^[^[OA focus up
 bindkey ^[^[OB focus down
 bindkey ^[^[OC next
 bindkey ^[^[OD prev
-bindkey ^_ digraph
+# PuTTY {{{
+bindkey ^[^[[A focus up
+bindkey ^[^[[B focus down
+bindkey ^[^[[C next
+bindkey ^[^[[D prev
+# }}}
+# }}}
+# Bind Alt-Digits to indexed switching {{{
 bindkey ^[1 select 1
 bindkey ^[2 select 2
 bindkey ^[3 select 3
@@ -37,6 +46,27 @@ bindkey ^[9 select 9
 bindkey ^[0 select 10
 bindkey ^[- select 11
 bindkey ^[= select 12
+# }}}
+# Bind Alt-Functions to indexed switching {{{
+# PuTTY with ESC[n~ function keys {{{
+bindkey ^[^[[11~ select 1
+bindkey ^[^[[12~ select 2
+bindkey ^[^[[13~ select 3
+bindkey ^[^[[14~ select 4
+bindkey ^[^[[15~ select 5
+bindkey ^[^[[17~ select 6
+bindkey ^[^[[18~ select 7
+bindkey ^[^[[19~ select 8
+bindkey ^[^[[20~ select 9
+bindkey ^[^[[21~ select 10
+bindkey ^[^[[23~ select 11
+bindkey ^[^[[24~ select 12
+# }}}
+bindkey ^[^[OP select 1
+bindkey ^[^[OQ select 2
+bindkey ^[^[OR select 3
+bindkey ^[^[OS select 4
+# }}}
 caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-6=%c'
 defc1 off
 deflogin off
