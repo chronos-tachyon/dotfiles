@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e -u
+export LC_ALL=C
+export TZ=UTC0
+if [ $# -eq 0 ]; then
+  exec diff -Naur base staging
+else
+  for arg; do
+    diff -Naur base/"$arg" staging/"$arg"
+  done
+fi
