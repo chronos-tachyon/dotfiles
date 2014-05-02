@@ -1,0 +1,3 @@
+#!/bin/sh
+# To make me run, rename me to "pre".
+echo PRE
