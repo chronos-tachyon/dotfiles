@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+# https://github.com/chronos-tachyon/dotfiles
+"""Applies the dotfiles in this script's directory to your home directory.
+Usage: apply [<home-dir>]
+  <home-dir> defaults to ~
+"""
+
+from __future__ import print_function
+import os
+import os.path
+import sys
+import shutil
+import subprocess
+import errno
+import glob
+import stat
+
+
+def OnRmTreeError(unused_func, unused_path, exc_info):
+  _, e, _ = exc_info
+  if isinstance(e, OSError) and e.errno == errno.ENOENT: return
+  raise
+
+
+def OnWalkError(e):
+  raise e
+
+
+class Ignoring(object):
+  __slots__ = ('_errnos',)
+
+  def __init__(self, *errnos):
+    self._errnos = frozenset(errnos)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, exc_type, e, traceback):
+    if isinstance(e, (OSError, IOError)):
+      if e.errno in self._errnos:
+        return True
+
+
+# Parse arguments.
+if len(sys.argv) < 2:
+  dest = os.path.expanduser('~')
+elif len(sys.argv) == 2 and not sys.argv[1].startswith('-'):
+  dest = sys.argv[1]
+else:
+  print(__doc__, file=sys.stderr)
+  if len(sys.argv) > 2:
+    print('ERROR: Unexpected arguments: {}'.format(sys.argv[2:]), file=sys.stderr)
+  elif sys.argv[1] not in ('-h', '--help'):
+    print('ERROR: Unknown flag: {}'.format(sys.argv[1]), file=sys.stderr)
+  sys.exit(1)
+
+# Make destination dir absolute, then chdir to source dir.
+dest = os.path.abspath(dest)
+os.chdir(os.path.dirname(sys.argv[0]))
+
+# Rename the existing staging directory to oldstaging, replacing any existing
+# oldstaging directory that may exist.  If there is no existing staging
+# directory, make an empty one.
+shutil.rmtree('oldstaging', onerror=OnRmTreeError)
+with Ignoring(errno.EEXIST):
+  os.mkdir('staging')
+os.rename('staging', 'oldstaging')
+
+# Build the new staging directory.
+print('Staging changes...')
+subprocess.check_call(['rsync', '-aO', '-f- .placeholder', 'base/', 'staging/'])
+subprocess.check_call(['rsync', '-aOAX', '-f- /README', 'override/', 'staging/'])
+os.chdir('staging')
+for patchfile in glob.glob('../patch/*.diff'):
+  with open(patchfile, 'r') as fh:
+    subprocess.check_call(['patch', '--no-backup-if-mismatch', '-Zp1'], stdin=fh)
+with Ignoring(errno.ENOENT):
+  subprocess.check_call(['../pre'])
+
+print('Applying changes...')
+subprocess.check_call(['rsync', '-aOAXn', './', dest])

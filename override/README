@@ -1,0 +1,7 @@
+Files placed in this directory will be copied as-is to your homedir.  Upstream
+changes will not be merged.
+
+For example:
+
+    # Apply no upstream changes to .screenrc
+    cp .screenrc .dotfiles/override/.screenrc

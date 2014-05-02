@@ -1,0 +1,5 @@
+Files placed in this directory that end in *.diff will be applied with:
+
+    patch -Tp1 < ${YOUR_FILE?}
+
+This can be used to add local customizations without breaking upstream merges.
