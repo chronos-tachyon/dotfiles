@@ -78,6 +78,6 @@ with Ignoring(errno.ENOENT):
   subprocess.check_call(['../pre'])
 
 print('Applying changes...')
-subprocess.check_call(['rsync', '-aOAXn', './', dest])
+subprocess.check_call(['rsync', '-aOAXv', './', dest])
 with Ignoring(errno.ENOENT):
   subprocess.check_call(['../post'])
