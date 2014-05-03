@@ -53,6 +53,7 @@ tar \
   --exclude='LICENSE*' \
   --exclude='README*' \
   --exclude='make-installer' \
+  --exclude='install-dotfiles' \
   --exclude='oldstaging' \
   --exclude='staging' \
   -vcf - * | gzip -9 | uuencode -m bundle.tar.gz >&3
