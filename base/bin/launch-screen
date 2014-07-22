@@ -1,9 +1,17 @@
 #!/bin/bash
-set -e
+set -eu
 
 die() {
-  echo "Error: $*" >&2
+  echo "ERROR: $*" >&2
   exit 1
+}
+
+get_shell() {
+  local s
+  s="$(getent passwd "$USER" | cut -d: -f7)"
+  [ -n "$s" -a -f "$s" -a -x "$s" ] || s="/bin/bash"
+  [ -n "$s" -a -f "$s" -a -x "$s" ] || s="/bin/sh"
+  echo "$s"
 }
 
 if [ $# -gt 0 ]; then
@@ -15,42 +23,25 @@ fi
 
 [ $# -eq 0 ] || die "Too many arguments"
 
-TERM=xterm-256color
-HOSTNAME=$(hostname)
-[ -n "$HOSTNAME" ] || die "Hostname not set"
-
-uid=$(id -u)
-[ -n "$uid" ] || die "Broken system: 'id -u' failed"
-
-pw=""
-for key in "$LOGNAME" "$USER" "$uid"; do
-  pw=$(getent passwd "$key" || true)
-  [ -z "$pw" ] || break
-done
-
-[ -n "$pw" ] ||
-  die "Failed to getent passwd"
-[ -n "$(echo "$pw" | cut -d: -f7)" ] ||
-  die "Missing field(s) in [$pw]"
-pw_uid=$(echo "$pw" | cut -d: -f3)
-[ "$uid" -eq "$pw_uid" ] ||
-  die "UID mismatch: [$USER] has uid $pw_uid, you have uid $uid"
-
-USER=$(echo "$pw" | cut -d: -f1)
-HOME=$(echo "$pw" | cut -d: -f6)
-SHELL=$(echo "$pw" | cut -d: -f7)
+TERM="xterm-256color"
+: ${HOSTNAME:=$(hostname)}
+: ${USER:=$(id -un)}
+: ${LOGNAME:=$USER}
+: ${HOME:=~}
+: ${SHELL:=$(get_shell)}
+: ${PATH:="/usr/local/bin:/usr/bin:/bin"}
 
 exec \
   setsid \
   env -i \
+    DISPLAY=":0" \
+    HOME="$HOME" \
     HOSTNAME="$HOSTNAME" \
+    LOGNAME="$LOGNAME" \
+    PATH="$PATH" \
+    SHELL="$SHELL" \
     TERM="$TERM" \
     USER="$USER" \
-    LOGNAME="$USER" \
-    HOME="$HOME" \
-    SHELL="$SHELL" \
-    PATH="$PATH" \
-    DISPLAY=":0" \
     ${KRB5CCNAME:+KRB5CCNAME="$KRB5CCNAME"} \
   ssh-agent \
   screen \
