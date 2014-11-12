@@ -24,7 +24,7 @@ _bashrc_histfile() {
 
 _bashrc_histsync() {
   local lockfile="${HISTFILE%/*}/.lock.${HISTFILE##*/}"
-  { flock -n 3 && history -n && history -a || true } 3>"${lockfile}"
+  { flock -n 3 && history -n && history -a || true; } 3>"${lockfile}"
 }
 
 shopt -s histappend histreedit histverify
