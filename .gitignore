@@ -1,3 +1,9 @@
 install-dotfiles
 oldstaging
 staging
+override/**
+!override/README
+patch/**
+!patch/README
+pre
+post

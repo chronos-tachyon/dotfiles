@@ -19,6 +19,7 @@ src="$(cd "$(dirname "$0")" && pwd)"
 
 echo 'Creating: install-dotfiles'
 exec 3>install-dotfiles
+chmod +x install-dotfiles
 cat >&3 <<'EOF'
 #!/bin/sh
 # https://github.com/chronos-tachyon/dotfiles
@@ -46,11 +47,20 @@ cd "$dest"
 rm -rf base
 uudecode -o /dev/stdout <<'EOA' | tar -xzf -
 EOF
-tar -czf - -C "$src" apply base override patch | uuencode -m base.tar.gz >&3
+cd "$src"
+tar \
+  --exclude='.git*' \
+  --exclude='LICENSE*' \
+  --exclude='README*' \
+  --exclude='make-installer' \
+  --exclude='install-dotfiles' \
+  --exclude='oldstaging' \
+  --exclude='staging' \
+  --owner=0 \
+  --group=0 \
+  -vcf - * | gzip -9 | uuencode -m bundle.tar.gz >&3
 cat >&3 <<'EOF'
 EOA
 chmod -R go= base/.bash/history.d base/.vim/swap
 EOF
 exec 3>&-
-
-chmod +x install-dotfiles

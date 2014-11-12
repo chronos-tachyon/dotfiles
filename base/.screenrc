@@ -69,7 +69,7 @@ bindkey ^[^[OS select 4
 # }}}
 caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-6=%c'
 defc1 off
-deflogin off
+deflogin on
 defscrollback 10000
 defutf8 on
 hardstatus ignore '[%n%f %t] %h'
