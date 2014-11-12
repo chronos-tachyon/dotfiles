@@ -22,3 +22,18 @@ if [ -n "$PS1" ]; then
   fi
   PS1='${debian_chroot:+($debian_chroot)}'"$PS1"
 fi
+
+_bashrc_prompt_commands=( : )
+
+_bashrc_prompt_command_add() {
+  _bashrc_prompt_commands=( "${_bashrc_prompt_commands[@]}" "$*" )
+}
+
+_bashrc_prompt_command() {
+  local cmd
+  for cmd in "${_bashrc_prompt_commands[@]}"; do
+    $cmd
+  done
+}
+
+PROMPT_COMMAND=_bashrc_prompt_command

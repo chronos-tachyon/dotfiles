@@ -17,11 +17,14 @@ _bashrc_histfile() {
     w="$(_bashrc_safe "$WINDOW")"
     t="S-${s}-${w}"
   else
-    t="$(tty)"
-    t="${t#/dev/}"
-    t="T-$(_bashrc_safe "$t")"
+    t='noscreen'
   fi
   echo "${u}_${h}_${t}"
+}
+
+_bashrc_histsync() {
+  local lockfile="${HISTFILE%/*}/.lock.${HISTFILE##*/}"
+  { flock -n 3 && history -n && history -a || true } 3>"${lockfile}"
 }
 
 shopt -s histappend histreedit histverify
@@ -29,7 +32,9 @@ export HISTCONTROL=ignoreboth:erasedups
 export HISTTIMEFORMAT='[%Y/%m/%d %H:%M:%S] '
 export HISTSIZE=5000
 export HISTFILE="${HOME}/.bash/history.d/$(_bashrc_histfile)"
+export HISTFILESIZE="$HISTSIZE"
 set +H
 
 unset _bashrc_histfile
 unset _bashrc_safe
+_bashrc_prompt_command_add _bashrc_histsync
