@@ -17,14 +17,16 @@ _bashrc_histfile() {
     w="$(_bashrc_safe "$WINDOW")"
     t="S-${s}-${w}"
   else
-    t='noscreen'
+    t="$(tty)"
+    t="${t#/dev/}"
+    t="T-$(_bashrc_safe "$t")"
   fi
   echo "${u}_${h}_${t}"
 }
 
 _bashrc_histsync() {
   local lockfile="${HISTFILE%/*}/.lock.${HISTFILE##*/}"
-  { flock -n 3 && history -n && history -a || true; } 3>"${lockfile}"
+  { flock -n 3 && history -w || true; } 3>"${lockfile}"
 }
 
 shopt -s histappend histreedit histverify
