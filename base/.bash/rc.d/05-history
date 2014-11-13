@@ -30,7 +30,7 @@ _bashrc_histsync() {
 }
 
 shopt -s histappend histreedit histverify
-export HISTCONTROL=ignoreboth:erasedups
+export HISTCONTROL=erasedups:ignorespace
 export HISTTIMEFORMAT='[%Y/%m/%d %H:%M:%S] '
 export HISTSIZE=5000
 export HISTFILE="${HOME}/.bash/history.d/$(_bashrc_histfile)"
