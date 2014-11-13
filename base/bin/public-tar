@@ -1,0 +1,2 @@
+#!/bin/sh -e
+exec tar --owner=root --group=root --mode=a+rX,go-w "$@"

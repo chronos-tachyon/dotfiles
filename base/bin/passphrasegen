@@ -1,0 +1,20 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.3
+"""Generates 'correct horse battery staple'-style passphrases."""
+
+from __future__ import print_function
+import random, re, sys
+
+FORBIDDEN_SUFFIX_RE = re.compile(r"(?:'[sd]|'[rv]e|n't|'ll)$")
+
+
+words = []
+with open('/usr/share/dict/words') as fh:
+  for line in fh:
+    word = line.rstrip('\r\n')
+    if len(word) <= 4 or FORBIDDEN_SUFFIX_RE.search(word):
+      continue
+    words.append(word)
+
+n = int(sys.argv[1]) if sys.argv[1:] else 4
+print(' '.join(random.choice(words) for _ in range(n)))

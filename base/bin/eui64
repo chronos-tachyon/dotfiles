@@ -1,0 +1,86 @@
+#!/usr/bin/python
+# Tested with Python 2.7 and 3.3
+"""A tool for parsing MAC addresses as EUI64 values."""
+
+from __future__ import print_function
+import argparse
+import re
+import sys
+
+BYTE_SEP_RE = re.compile('[:.-]')
+IPV6_ZERO_RE = re.compile(r'\b0+([0-9A-Fa-f]+)\b')
+IPV6_FMT = '{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}:{:02x}{:02x}'
+
+
+class Bytes(object):
+  """A series of bytes."""
+  __slots__ = ('value',)
+
+  @classmethod
+  def parse(cls, text):
+    return cls((int(b, 16) for b in BYTE_SEP_RE.split(text)))
+
+  def __init__(self, value):
+    self.value = tuple(value)
+    if not all(type(b) is int and b >= 0 and b <= 255 for b in self.value):
+      raise TypeError()
+
+  def __str__(self):
+    return '-'.join('{:02X}'.format(b) for b in self.value)
+
+
+class MAC(Bytes):
+  """A MAC address."""
+  __slots__ = ()
+
+  def __init__(self, value):
+    Bytes.__init__(self, value)
+    if len(self.value) != 6:
+      raise ValueError()
+
+  def to_eui64(self, flip=True):
+    b0, b1, b2, b3, b4, b5 = self.value
+    if flip:
+      b0 = b0 ^ 2
+    return EUI64((b0, b1, b2, 0xFF, 0xFE, b3, b4, b5))
+
+
+class EUI64(Bytes):
+  """An EUI64."""
+  __slots__ = ()
+
+  def __init__(self, value):
+    Bytes.__init__(self, value)
+    if len(self.value) != 8 or self.value[3] != 0xFF or self.value[4] != 0xFE:
+      raise ValueError()
+
+  def to_ipv6(self):
+    return IPV6_ZERO_RE.sub(r'\1', IPV6_FMT.format(*self.value))
+
+
+def main(argv):
+  parser = argparse.ArgumentParser(prog=argv[0], description=__doc__)
+  parser.add_argument('-s', '--standard',
+                      action='store_false', dest='flip',
+                      help='use standard EUI64 (rare)')
+  parser.add_argument('-m', '--modified',
+                      action='store_true', dest='flip',
+                      default=argparse.SUPPRESS,
+                      help='use modified EUI64 (common)')
+  parser.add_argument('-6', '--ipv6',
+                      action='store_const', dest='method',
+                      const=EUI64.to_ipv6, default=EUI64.to_ipv6,
+                      help='format the EUI64 as an IPv6 address\'s lower /64')
+  parser.add_argument('-b', '--bytes',
+                      action='store_const', dest='method',
+                      const=EUI64.__str__,
+                      help='format the EUI64 as raw bytes')
+  parser.add_argument('mac', nargs='+', type=MAC.parse,
+                      help=('a MAC addresses to parse; '
+                            'allowed delimiters: ".", "-", ":"'))
+  args = parser.parse_args(argv[1:])
+  for mac in args.mac:
+    print(args.method(mac.to_eui64(flip=args.flip)))
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv) or 0)

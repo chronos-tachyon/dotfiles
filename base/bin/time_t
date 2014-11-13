@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Tested with Python 2.7 and 3.2
+# Tested with Python 2.7, 3.2, and 3.3
 """Prints information about a time_t."""
 
 from __future__ import print_function
