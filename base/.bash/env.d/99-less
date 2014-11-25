@@ -1,0 +1,2 @@
+unset LESSOPEN
+unset LESSCLOSE
