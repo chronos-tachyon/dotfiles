@@ -1,0 +1,30 @@
+#!/usr/bin/python
+# vim:set sts=2 sw=2 et:
+"""Converts a file to a data: URI."""
+from __future__ import print_function
+import argparse
+import base64
+import os
+import sys
+
+
+class MyHelpFormatter(argparse.RawDescriptionHelpFormatter,
+                      argparse.ArgumentDefaultsHelpFormatter):
+    pass
+
+parser = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=MyHelpFormatter)
+parser.add_argument('mime_type',
+                    help='The MIME Content-Type of the data.')
+parser.add_argument('input_file',
+                    nargs='?',
+                    default='-',
+                    help='The file to encode, or "-" for STDIN.')
+args = parser.parse_args()
+
+if args.input_file == '-':
+  args.input_file = '/dev/stdin'
+with open(args.input_file, 'rb', 0) as fh:
+  data = base64.standard_b64encode(fh.read()).decode('ascii')
+print('data:' + args.mime_type + ';base64,' + data)
+
