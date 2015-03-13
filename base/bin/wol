@@ -1,0 +1,56 @@
+#!/usr/bin/python
+"""Sends wake-on-lan packets."""
+
+from __future__ import print_function
+import argparse
+import re
+import socket
+import struct
+import sys
+
+
+class MAC(object):
+  __slots__ = ('octets',)
+
+  def __init__(self, text):
+    self.octets = tuple(int(x, 16) for x in text.split(':'))
+
+  def __str__(self):
+    return '{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}'.format(*self.octets)
+
+
+def IP(text):
+  if text == '' or text == '<broadcast>':
+    return text
+  else:
+    packed = socket.inet_aton(text)
+    return socket.inet_ntoa(packed)
+
+
+class MyHelpFormatter(argparse.RawDescriptionHelpFormatter,
+                      argparse.ArgumentDefaultsHelpFormatter):
+  pass
+
+
+parser = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=MyHelpFormatter)
+parser.add_argument('mac', metavar='MAC-ADDRESS', type=MAC,
+                    help='MAC address of the machine to wake')
+parser.add_argument('net', metavar='IP-ADDRESS', type=IP,
+                    nargs='?', default='<broadcast>',
+                    help=('IP address of the machine to wake, or '
+                          'network broadcast address of its LAN segment'))
+args = parser.parse_args()
+
+packet = []
+packet.extend((0xff,) * 6)
+packet.extend(args.mac.octets * 20)
+packet = struct.pack('126B', *packet)
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+try:
+  s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+  s.sendto(packet, (args.net, 7))
+  print('Sent wake-on-lan packet for {} to {}'.format(args.mac, args.net))
+finally:
+  s.close()
