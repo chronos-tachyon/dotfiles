@@ -1,0 +1,42 @@
+#!/bin/bash
+set -eu -o pipefail
+
+get_shell() {
+  local s u="${1?}"
+  s="$(getent passwd "$USER" | cut -d: -f7)"
+  [ -n "$s" -a -f "$s" -a -x "$s" ] || s="/bin/bash"
+  [ -n "$s" -a -f "$s" -a -x "$s" ] || s="/bin/sh"
+  echo "$s"
+}
+
+homedir=~
+hostname="$(hostname)"
+username="$(id -un)"
+
+authsock="${homedir}/.ssh/socket.screen"
+display=':99'
+lang='en_US.UTF-8'
+path="${homedir}/bin:/usr/local/bin:/usr/bin:/bin"
+shell="$(get_shell "$username")"
+term='xterm-256color'
+
+ln -sfT X0 /tmp/.X11-unix/X99
+if [ -z "${SSH_AUTH_SOCK:+isset}" -a -z "${FWD_SSH_AUTH_SOCK:+isset}" ]; then
+  rm -f "${authsock}"
+else
+  ln -sfT "${SSH_AUTH_SOCK:-$FWD_SSH_AUTH_SOCK}" "$authsock"
+fi
+
+exec \
+  env -i \
+    DISPLAY="$display" \
+    HOME="$homedir" \
+    HOSTNAME="$hostname" \
+    LANG="$lang" \
+    LOGNAME="$username" \
+    PATH="$path" \
+    SHELL="$shell" \
+    SSH_AUTH_SOCK="$authsock" \
+    TERM="$term" \
+    USER="$username" \
+  /usr/bin/screen "$@"
