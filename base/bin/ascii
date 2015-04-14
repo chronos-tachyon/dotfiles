@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+print('    0123456789abcdef')
 for i in range(0x20, 0x80, 0x10):
   line = '%02X: ' % i
   for j in range(i, i + 0x10):
