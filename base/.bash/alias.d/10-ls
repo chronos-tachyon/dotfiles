@@ -1,1 +1,1 @@
-alias ls='command ls --color=auto --sort=version --group-directories-first -A'
+alias ls='command ls --color=auto --sort=version -A'
