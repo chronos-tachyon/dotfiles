@@ -27,7 +27,7 @@ class MAC(object):
           host += '.' + domain
       line = subprocess.check_output(['getent', 'ethers', host]).decode('utf-8')
       text = FIRST_WORD.match(line).group(1)
-      print('Resolved {!r} as {}'.format(host, text))
+      print('Resolved {} as {}'.format(host, text))
     self.octets = struct.pack('6B', *(int(x, 16) for x in MAC_SEP_RE.split(text)))
 
   def __str__(self):
@@ -42,7 +42,7 @@ def IP(text):
       host = text
       line = subprocess.check_output(['getent', 'hosts', host]).decode('utf-8')
       text = FIRST_WORD.match(line).group(1)
-      print('Resolved {!r} as {}'.format(host, text))
+      print('Resolved {} as {}'.format(host, text))
     except subprocess.CalledProcessError:
       pass
     packed = socket.inet_aton(text)
