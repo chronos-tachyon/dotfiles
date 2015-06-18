@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set sts=2 sw=2 et:
 """Sends wake-on-lan packets."""
 
 from __future__ import print_function
@@ -7,22 +8,43 @@ import re
 import socket
 import struct
 import sys
+import subprocess
+
+MAC_RE = re.compile(r'^(?i)[0-9a-f]{1,2}(?::[0-9a-f]{1,2}|-[0-9a-f]{1,2}){5}$')
+MAC_SEP_RE = re.compile(r'[:-]')
+FIRST_WORD = re.compile(r'^\s*(\S+)(?:\s.*)?$')
 
 
 class MAC(object):
   __slots__ = ('octets',)
 
   def __init__(self, text):
-    self.octets = tuple(int(x, 16) for x in text.split(':'))
+    if not MAC_RE.match(text):
+      host = text
+      if '.' not in host:
+        domain = subprocess.check_output(['dnsdomainname']).decode('utf-8').strip()
+        if domain:
+          host += '.' + domain
+      line = subprocess.check_output(['getent', 'ethers', host]).decode('utf-8')
+      text = FIRST_WORD.match(line).group(1)
+      print('Resolved {!r} as {}'.format(host, text))
+    self.octets = struct.pack('6B', *(int(x, 16) for x in MAC_SEP_RE.split(text)))
 
   def __str__(self):
-    return '{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}'.format(*self.octets)
+    return '{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}'.format(*struct.unpack('6B', self.octets))
 
 
 def IP(text):
   if text == '' or text == '<broadcast>':
     return text
   else:
+    try:
+      host = text
+      line = subprocess.check_output(['getent', 'hosts', host]).decode('utf-8')
+      text = FIRST_WORD.match(line).group(1)
+      print('Resolved {!r} as {}'.format(host, text))
+    except subprocess.CalledProcessError:
+      pass
     packed = socket.inet_aton(text)
     return socket.inet_ntoa(packed)
 
@@ -42,10 +64,7 @@ parser.add_argument('net', metavar='IP-ADDRESS', type=IP,
                           'network broadcast address of its LAN segment'))
 args = parser.parse_args()
 
-packet = []
-packet.extend((0xff,) * 6)
-packet.extend(args.mac.octets * 20)
-packet = struct.pack('126B', *packet)
+packet = b'\xff' * 6 + args.mac.octets * 20
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 try:
