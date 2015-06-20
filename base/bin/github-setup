@@ -1,0 +1,53 @@
+#!/bin/sh -eux
+
+usage() {
+  local rc=0
+  if [ $# -gt 0 ]; then
+    exec >&2
+    echo "ERROR: $*"
+    rc=2
+  fi
+  cat <<"EOF"
+Clones a GitHub repository and sets up asymmetric push/pull URLs.
+Usage: ${0##*/} <repo-url>
+EOF
+  exit $rc
+}
+
+if [ $# -eq 0 ]; then
+  usage "missing repository URL"
+elif [ $# -eq 1 ]; then
+  repo="$1"
+  dir="${repo##*/}"
+  dir="${dir%.git}"
+  shift
+elif [ $# -eq 2 ]; then
+  repo="$1"
+  dir="$2"
+  shift 2
+else
+  usage "unexpected arguments:" "$@"
+fi
+
+case "$repo" in
+  (https://github.com/*)
+    base="${repo#https://github.com/}"
+    base="${base%.git}"
+    ;;
+  (http://github.com/*)
+    base="${repo#http://github.com/}"
+    base="${base%.git}"
+    ;;
+  (git@github.com:*)
+    base="${repo#git@github.com:}"
+    base="${base%.git}"
+    ;;
+  (*)
+    usage "\"${repo}\": unrecognized GitHub URL format"
+    ;;
+esac
+
+git clone "https://github.com/${base}.git" "$dir"
+cd "$dir"
+git config --local --add remote.origin.pushurl "git@github.com:${base}.git"
+echo OK
