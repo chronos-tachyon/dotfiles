@@ -1,0 +1,9 @@
+[color]
+	ui = auto
+[gc]
+	packrefs = true
+[push]
+	default = simple
+[user]
+	name = Donald King
+	email = chronos@chronos-tachyon.net
