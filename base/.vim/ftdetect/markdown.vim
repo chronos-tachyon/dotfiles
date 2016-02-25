@@ -1,1 +1,1 @@
-au BufRead,BufNewFile *.md setl ft=markdown
+au BufRead,BufNewFile *.md setfiletype markdown
