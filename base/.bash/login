@@ -1,4 +1,5 @@
 source ~/.bash/rc
-source ~/.bash/functions || return
+source ~/.bash/functions || return 0
 _bashrc_source_dir ~/.bash/login.d
 _bashrc_cleanup
+return 0

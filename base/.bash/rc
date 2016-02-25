@@ -1,4 +1,4 @@
-source ~/.bash/functions || return
+source ~/.bash/functions || return 0
 set -a
 _bashrc_source_dir ~/.bash/env.d
 set +a
@@ -8,3 +8,4 @@ if [ -n "$PS1" ]; then
   _bashrc_source_dir ~/.bash/completion.d
 fi
 _bashrc_cleanup
+return 0
