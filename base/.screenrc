@@ -1,5 +1,6 @@
 activity 'Activity in window %n^G'
 altscreen on
+backtick 0 5 5 screenhelper-loadavg
 bell_msg 'Bell in window %n^G'
 bind '#' screen -t '# |bash' sudo -i
 bind \\
@@ -67,7 +68,7 @@ bindkey ^[^[OQ select 2
 bindkey ^[^[OR select 3
 bindkey ^[^[OS select 4
 # }}}
-caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-6=%c'
+caption always '%{= Kw}%{R}%n%f%{-} %{Y}%t%{-}%010=%{G}%h%{-}%-11=%c %0`'
 defc1 off
 deflogin on
 defscrollback 10000

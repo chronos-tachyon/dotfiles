@@ -1,0 +1,5 @@
+#!/usr/bin/python
+
+with open('/proc/loadavg', 'r') as f:
+  line = f.readline().split(' ', 1)[0]
+print(line)
