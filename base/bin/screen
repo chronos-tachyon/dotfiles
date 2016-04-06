@@ -21,14 +21,16 @@ path="${homedir}/bin:/usr/local/bin:/usr/bin:/bin"
 shell="$(get_shell "$username")"
 term='xterm-256color'
 
-ln -sfT X0 /tmp/.X11-unix/X99
-if [ -n "${SSH_AUTH_SOCK:+isset}" ]; then
-  ln -sfT "$SSH_AUTH_SOCK" "$authsock"
-fi
-if [ -n "${FWD_SSH_AUTH_SOCK:+isset}" ]; then
-  ln -sfT "$FWD_SSH_AUTH_SOCK" "$fwdsock"
-else
-  ln -sfT "${authsock##*/}" "$fwdsock"
+if [ -d /tmp/.X11-unix ]; then
+  ln -sfT X0 /tmp/.X11-unix/X99
+  if [ -n "${SSH_AUTH_SOCK:+isset}" ]; then
+    ln -sfT "$SSH_AUTH_SOCK" "$authsock"
+  fi
+  if [ -n "${FWD_SSH_AUTH_SOCK:+isset}" ]; then
+    ln -sfT "$FWD_SSH_AUTH_SOCK" "$fwdsock"
+  else
+    ln -sfT "${authsock##*/}" "$fwdsock"
+  fi
 fi
 
 exec \
