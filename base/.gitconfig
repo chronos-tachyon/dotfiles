@@ -1,7 +1,13 @@
+[alias]
+	lg = log --pretty=format:'%C(yellow)%h %C(green)%ar %C(bold blue)%an%Creset\n%s' --abbrev-commit --date=relative
 [color]
 	ui = auto
+[core]
+	autocrlf = input
 [gc]
 	packrefs = true
+[pull]
+	rebase = false
 [push]
 	default = simple
 [user]
