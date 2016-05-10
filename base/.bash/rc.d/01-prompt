@@ -9,13 +9,28 @@ _bashrc_pwd() {
   esac
 }
 
+_bashrc_tty() {
+  if [ -n "$STY" -a -n "$WINDOW" ]; then
+    local s="$STY"
+    if [[ "$s" =~ ^[0-9]+\. ]]; then
+      s="${s#*.}"
+    fi
+    local w="$WINDOW"
+    echo -n "${s}.${w}"
+  else
+    local t="$(tty)"
+    t="${t#/dev/}"
+    echo -n "$t"
+  fi
+}
+
 if [ -n "$PS1" ]; then
   if [ "$(tput colors 2>/dev/null || echo 0)" -lt 8 ]; then
-    PS1='\D{%Y-%m-%d %I:%M:%S%P} \u@\h:$(_bashrc_pwd)$(_bashrc_gitbranch) !\!\n\$ '
+    PS1='\D{%Y-%m-%d %I:%M:%S%P} $(_bashrc_tty) !\! \u@\h:$(_bashrc_pwd)$(_bashrc_gitbranch)\n\$ '
   elif [ "$UID" -eq 0 ]; then
-    PS1='\[\e[1;33m\]\D{%Y-%m-%d %I:%M:%S%P}\[\e[0m\] \[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]$(_bashrc_pwd)\[\e[0m\]$(_bashrc_gitbranch) !\!\n\[\e[31m\]\$\[\e[0m\] '
+    PS1='\[\e[1;33m\]\D{%Y-%m-%d %I:%M:%S%P}\[\e[0m\] \[\e[33m\]$(_bashrc_tty)\[\e[0m\] \[\e[1;36m\]!\!\[\e[0m\] \[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]$(_bashrc_pwd)\[\e[0m\]$(_bashrc_gitbranch)\n\[\e[31m\]\$\[\e[0m\] '
   else
-    PS1='\[\e[1;33m\]\D{%Y-%m-%d %I:%M:%S%P}\[\e[0m\] \[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]$(_bashrc_pwd)\[\e[0m\]$(_bashrc_gitbranch) !\!\n\$ '
+    PS1='\[\e[1;33m\]\D{%Y-%m-%d %I:%M:%S%P}\[\e[0m\] \[\e[33m\]$(_bashrc_tty)\[\e[0m\] \[\e[1;36m\]!\!\[\e[0m\] \[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]$(_bashrc_pwd)\[\e[0m\]$(_bashrc_gitbranch)\n\$ '
   fi
   if [ -z "$debian_chroot" -a -r /etc/debian_chroot ]; then
     debian_chroot="$(cat /etc/debian_chroot)"
