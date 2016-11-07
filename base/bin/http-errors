@@ -1,0 +1,35 @@
+#!/usr/bin/python
+"""Collates the 4xx and 5xx errors from Apache "combined"-format logs."""
+
+from __future__ import print_function
+import argparse
+import gzip
+import re
+import sys
+
+LINE_RE = re.compile(r'^\S+ \S+ \S+ \[\S+ \S+\] "\w+ (\S+) HTTP/\d\.\d" (\d+) \d+ "[^"]*" "[^"]*"$')
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('input', nargs='+',
+                    help='One or more files to process')
+args = parser.parse_args()
+
+errors = set()
+
+for path in args.input:
+    opener = open
+    if path.endswith('.gz'):
+        opener = gzip.open
+    with opener(path, 'r') as fh:
+        for line in fh:
+            m = LINE_RE.match(line)
+            if not m:
+                raise AssertionError('line does not match regexp:\n\t' + line)
+            url, code = m.group(1, 2)
+            code = int(code)
+            if code < 400:
+                continue
+            errors.add((url, code))
+
+for url, code in sorted(errors):
+    print('{}: {}'.format(code, url))

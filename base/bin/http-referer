@@ -1,0 +1,40 @@
+#!/usr/bin/python
+"""Collates the referer [sic] headers from Apache "combined"-format logs."""
+
+from __future__ import print_function
+import argparse
+import gzip
+import re
+import sys
+
+LINE_RE = re.compile(r'^\S+ \S+ \S+ \[\S+ \S+\] "[^"]*" \d+ \d+ "([^"]*)" "[^"]*"$')
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('-s', '--skip-re',
+                    help='Referers that match this regular expression will be skipped')
+parser.add_argument('input', nargs='+',
+                    help='One or more files to process')
+args = parser.parse_args()
+skip = re.compile(args.skip_re) if args.skip_re else None
+
+referers = set()
+
+for path in args.input:
+    opener = open
+    if path.endswith('.gz'):
+        opener = gzip.open
+    with opener(path, 'r') as fh:
+        for line in fh:
+            m = LINE_RE.match(line)
+            if not m:
+                raise AssertionError('line does not match regexp:\n\t' + line)
+            referer = m.group(1)
+            if skip and skip.search(referer):
+                continue
+            referers.add(referer)
+
+referers.discard('')
+referers.discard('-')
+referers.discard('(null)')
+for referer in sorted(referers):
+    print(referer)
