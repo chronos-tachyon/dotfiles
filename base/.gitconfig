@@ -1,15 +1,29 @@
 [alias]
-	lg = log --pretty=format:'%C(yellow)%h %C(green)%ar %C(bold blue)%an%Creset\n%s' --abbrev-commit --date=relative
+	ff = merge --ff-only origin/master
+	fff = "!git fetch && git ff"
+	lg = log --pretty=format:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%ar)%C(reset) %C(bold blue)<%an>%C(reset)' --graph
+	stash-all = stash save --include-untracked
 [color]
 	ui = auto
+[color "status"]
+	added = green
+	changed = yellow bold
+	untracked = red bold
 [core]
 	autocrlf = input
+[fetch]
+	prune = true
 [gc]
 	packrefs = true
+[merge]
+	conflictstyle = diff3
 [pull]
 	rebase = false
+	ff = only
 [push]
 	default = simple
+[status]
+	showUntrackedFiles = all
 [user]
 	name = Donald King
 	email = chronos@chronos-tachyon.net
